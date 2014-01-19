@@ -38,6 +38,6 @@ object UsbDevice {
   }
 }
 
-class UsbDevice(val javaUsbDevice: JavaxUsbDevice) {
+class UsbDevice(val javaxUsbDevice: JavaxUsbDevice) {
 
 }
