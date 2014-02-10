@@ -1,12 +1,12 @@
 package org.triplepoint.ScalaCrazyflie
 
+/**
+ * This class represents a CrazyRadio, and the CRTP protocol
+ * it uses to communicate.
+ */
+
 object CrazyRadio {
-  val vendorId = 0x1915
-  val productId = 0x7777
-
-  def apply() = new CrazyRadio(UsbDevice(vendorId, productId))
+  def apply() = new CrazyRadio(CrazyRadioUsb())
 }
 
-class CrazyRadio(val usbDevice: UsbDevice) {
-
-}
+class CrazyRadio(val transportHardware: CrazyRadioUsb)
