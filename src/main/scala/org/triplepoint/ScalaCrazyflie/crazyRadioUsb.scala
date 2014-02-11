@@ -28,13 +28,17 @@ object CrazyRadioUsb {
   protected def findDevice(hub: UsbHub, vendorId: Int, productId: Int): Option[UsbDevice] = {
 
     def flattenListOfUsbDevices(devices: List[UsbDevice]): List[UsbDevice] = devices flatMap {
-      case x: UsbDevice if x.isUsbHub => x :: flattenListOfUsbDevices(x.asInstanceOf[UsbHub].getAttachedUsbDevices.asScala.toList.map(_.asInstanceOf[UsbDevice]))
-      case x: UsbDevice               => List(x)
+      case x: UsbDevice if x.isUsbHub =>
+          val listSubDevices = x.asInstanceOf[UsbHub].getAttachedUsbDevices.asScala.toList.map(_.asInstanceOf[UsbDevice])
+          x :: flattenListOfUsbDevices(listSubDevices)
+      case x: UsbDevice =>
+        List(x)
     }
 
-    flattenListOfUsbDevices(List(hub)).filter(x =>
-      x.getUsbDeviceDescriptor.idVendor == vendorId && x.getUsbDeviceDescriptor.idProduct == productId
-    ).headOption
+    flattenListOfUsbDevices(List(hub))
+      .filter(_.getUsbDeviceDescriptor.idVendor == vendorId)
+      .filter(_.getUsbDeviceDescriptor.idProduct == productId)
+      .headOption
   }
 }
 
