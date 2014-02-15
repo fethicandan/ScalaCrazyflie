@@ -3,7 +3,7 @@ package org.triplepoint.ScalaCrazyflie
 import javax.usb._
 import scala.collection.JavaConverters._
 
-object CrazyRadioUsb {
+object CrazyRadio {
   val vendorId = 0x1915
   val productId = 0x7777
 
@@ -18,7 +18,7 @@ object CrazyRadioUsb {
       case None    => throw new RuntimeException("Couldn't find the device.")
     }
 
-    new CrazyRadioUsb(foundDevice)
+    new CrazyRadio(foundDevice)
   }
 
   /**
@@ -42,4 +42,4 @@ object CrazyRadioUsb {
   }
 }
 
-class CrazyRadioUsb(val usbDevice: UsbDevice)
+class CrazyRadio(val usbDevice: UsbDevice)
