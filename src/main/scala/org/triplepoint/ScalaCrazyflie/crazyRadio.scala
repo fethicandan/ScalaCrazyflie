@@ -9,7 +9,7 @@ object CrazyRadio {
   val CrazyRadioVendorId = 0x1915
   val CrazyRadioProductId = 0x7777
 
-  // Dongle Configuration Values
+  // Dongle Configuration Message Types
   val SetRadioChannel = 0x01
   val SetRadioAddress = 0x02
   val SetDataRate = 0x03
@@ -17,7 +17,7 @@ object CrazyRadio {
   val SetRadioARD = 0x05 // (Automatic Retransmit Delay)
   val SetRadioARC = 0x06 // (Ack Retry Count)
   val AckEnable = 0x10
-  val SetContCarrier = 0x20 // (Continuous Carrier)
+  val SetContinuousCarrier = 0x20 // (Continuous Carrier)
   val StartScanChannels = 0x21
   val GetScanChannels = 0x21
   val LaunchBootLoader = 0xFF
