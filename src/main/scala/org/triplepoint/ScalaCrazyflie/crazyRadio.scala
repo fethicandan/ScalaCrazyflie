@@ -4,8 +4,8 @@ import javax.usb._
 import scala.collection.JavaConverters._
 
 object CrazyRadio {
-  val vendorId = 0x1915
-  val productId = 0x7777
+  val CrazyRadioVendorId = 0x1915
+  val CrazyRadioProductId = 0x7777
 
   /**
    * traverse the tree of USB devices and pull out the one that matches.
@@ -13,7 +13,7 @@ object CrazyRadio {
   def apply() = {
     val rootHub = UsbHostManager.getUsbServices.getRootUsbHub
 
-    val foundDevice = findDevice(rootHub, vendorId, productId) match {
+    val foundDevice = findDevice(rootHub, CrazyRadioVendorId, CrazyRadioProductId) match {
       case Some(x) => x
       case None    => throw new RuntimeException("Couldn't find the device.")
     }
@@ -25,20 +25,17 @@ object CrazyRadio {
    * Given a USB hub device, try to find an object in the hierarchy that matches
    * the given vendor and product IDs.
    */
-  protected def findDevice(hub: UsbHub, vendorId: Int, productId: Int): Option[UsbDevice] = {
+  protected def findDevice(device: UsbDevice, vendorId: Int, productId: Int): Option[UsbDevice] = device match {
+    case x: UsbDevice
+      if x.getUsbDeviceDescriptor.idVendor  == vendorId &&
+         x.getUsbDeviceDescriptor.idProduct == productId
+      => Some(x)
 
-    def flattenListOfUsbDevices(devices: List[UsbDevice]): List[UsbDevice] = devices flatMap {
-      case x: UsbDevice if x.isUsbHub =>
-          val listSubDevices = x.asInstanceOf[UsbHub].getAttachedUsbDevices.asScala.toList.map(_.asInstanceOf[UsbDevice])
-          x :: flattenListOfUsbDevices(listSubDevices)
-      case x: UsbDevice =>
-        List(x)
-    }
+    case x: UsbDevice if x.isUsbHub =>
+      val listAttachedDevices = x.asInstanceOf[UsbHub].getAttachedUsbDevices.asScala.toList.map(_.asInstanceOf[UsbDevice])
+      listAttachedDevices.map(x => findDevice(x, vendorId, productId)).flatten.headOption
 
-    flattenListOfUsbDevices(List(hub))
-      .filter(_.getUsbDeviceDescriptor.idVendor == vendorId)
-      .filter(_.getUsbDeviceDescriptor.idProduct == productId)
-      .headOption
+    case _ => None
   }
 }
 
