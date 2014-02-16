@@ -1,7 +1,5 @@
 package org.triplepoint.ScalaCrazyflie
 
-import de.ailis.usb4java.utils._
-
 object Main extends App {
 
   // ## Testing!
@@ -9,10 +7,4 @@ object Main extends App {
   //  talk to a CrazyFlie object that owns a radio object.  But here we are for
   //  testing.
   val radio = CrazyRadio()
-  val usbDevice = radio.usbDevice
-  val desc = usbDevice.getUsbDeviceDescriptor
-
-  // Print out the device description
-  println(DescriptorUtils.dump(desc))
-
 }
