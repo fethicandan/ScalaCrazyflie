@@ -84,8 +84,13 @@ class CrazyRadio(val usbDevice: UsbDevice) {
 
   assert(firmwareVersion >= 0.4, "Firmware version must be 0.4 or greater.")
 
+  initializeUsbDevice()
   initializeRadio()
 
+  def initializeUsbDevice() = {
+    // @TODO Set the active configuration to "1" (I think this is already the case)
+    // @TODO claim the "0" interface
+  }
 
   def initializeRadio() = {
     setDataRate(2) // @TODO This should be an enum
