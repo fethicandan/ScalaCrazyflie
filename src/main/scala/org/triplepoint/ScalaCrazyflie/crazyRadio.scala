@@ -74,6 +74,9 @@ object CrazyRadio {
  *
  * Also, take a look at the reference implementation in Python, from BitCraze
  * https://github.com/bitcraze/crazyflie-clients-python/blob/master/lib/cflib/drivers/crazyradio.py
+ *
+ * For details on how the low-level USB elements function, see the JSR-80 specification at:
+ * http://javax-usb.sourceforge.net/jsr80.pdf
  */
 class CrazyRadio(val usbDevice: UsbDevice) {
 
