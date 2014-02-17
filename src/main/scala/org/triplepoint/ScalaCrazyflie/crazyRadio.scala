@@ -3,6 +3,10 @@ package org.triplepoint.ScalaCrazyflie
 import javax.usb._
 import de.ailis.usb4java.utils.DescriptorUtils
 import scala.collection.JavaConverters._
+import org.triplepoint.ScalaCrazyflie.CrazyRadio.DataRate
+import org.triplepoint.ScalaCrazyflie.CrazyRadio.DataRate.DataRate
+import org.triplepoint.ScalaCrazyflie.CrazyRadio.Power
+import org.triplepoint.ScalaCrazyflie.CrazyRadio.Power.Power
 
 object CrazyRadio {
   // USB Device parameters
@@ -23,16 +27,21 @@ object CrazyRadio {
   val LaunchBootLoader = 0xFF
 
   // Enumerate the possible values for the radio data rate setting.
-//  sealed class DataRate extends Enumeration {
-//    type DataRate = Value
-//    val 250Kbps, 1Mbps, 2Mbps = Value
-//  }
-//
-//  // Enumerate the possible values for the radio power setting.
-//  sealed class Power extends Enumeration {
-//    type Power = Value
-//    val Minus18dBm, Minus12dBm, Minus6dBm, ZerodBm = Value
-//  }
+  object DataRate extends Enumeration {
+    type DataRate = Value
+    val `250Kbps` = Value(0)
+    val `1Mbps`   = Value(1)
+    val `2Mbps`   = Value(2)
+  }
+
+  // Enumerate the possible values for the radio power setting.
+  object Power extends Enumeration {
+    type Power = Value
+    val Minus18dBm = Value(0)
+    val Minus12dBm = Value(1)
+    val Minus6dBm  = Value(2)
+    val `0dBm`     = Value(3)
+  }
 
   /**
    * traverse the tree of USB devices and pull out the first one that matches the CrazyRadio vendor and product IDs.
@@ -93,16 +102,14 @@ class CrazyRadio(val usbDevice: UsbDevice) {
   }
 
   def initializeRadio() = {
-    setDataRate(2) // @TODO This should be an enum
     setChannel(2)
-
-    // firmware v0.4+ elements
-    setContinuousCarrierMode(false)
-    //setAddress(0xE7E7E7E7E7)  // @Todo this is a 64-bit unsigned value.  Not sure how to represent this.
-    setPower(3)  // @TODO this should be part of an enum
+    setAddress(BigInt("E7E7E7E7E7", 16))
+    setDataRate(DataRate.`2Mbps`)
+    setPower(Power.`0dBm`)
 //    setAutomaticRetryDelay() // @TODO This isn't nailed down yet
 //    setAutomaticRetryCount() // @TODO This isn't nailed down yet
-//    configureAutomaticAck() // @TODO This isn't nailed down yet
+    //    setAutomaticAck() // @TODO This isn't nailed down yet
+    setContinuousCarrierMode(false)
   }
 
   def setChannel(channel: Int) = {
@@ -111,18 +118,17 @@ class CrazyRadio(val usbDevice: UsbDevice) {
     println(channel)
   }
 
-  // @TODO this takes a 64-bit unsigned value, which the JVM cannot represent. Figure this out.
-  def setAddress(address: Int) = {
+  def setAddress(address: BigInt) = {
+    require(address >= 0, "The radio address must be greater than or equal to 0F.")
+    require(address <= BigInt("FFFFFFFFFF", 16), "The radio address must be less than or equal to 0xFFFFFFFFFF.")
     println(address)
   }
 
-  def setDataRate(dataRate: Int) = {
-    // @todo should be an enum
+  def setDataRate(dataRate: DataRate) = {
     println(dataRate.id)
   }
 
-  def setPower(power: Int) = {
-    // @todo should be an enum
+  def setPower(power: Power) = {
     println(power.id)
   }
 
@@ -137,7 +143,7 @@ class CrazyRadio(val usbDevice: UsbDevice) {
     require(count <= 15, "The automatic retry count must be less than or equal to 15.")
   }
 
-  def configureAutomaticAck(enabled: Boolean) = {
+  def setAutomaticAck(enabled: Boolean) = {
   }
 
   def setContinuousCarrierMode(active: Boolean) = {
