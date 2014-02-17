@@ -96,6 +96,8 @@ class CrazyRadio(val usbDevice: UsbDevice) {
   initializeUsbDevice()
   initializeRadio()
 
+  sendVendorRequest(1,1) // FOR TESTING
+
   def initializeUsbDevice() = {
     // @TODO Set the active configuration to "1" (I think this is already the case)
     // @TODO claim the "0" interface
@@ -106,8 +108,8 @@ class CrazyRadio(val usbDevice: UsbDevice) {
     setAddress(BigInt("E7E7E7E7E7", 16))
     setDataRate(DataRate.`2Mbps`)
     setPower(Power.`0dBm`)
-//    setAutomaticRetryDelay() // @TODO This isn't nailed down yet
-//    setAutomaticRetryCount() // @TODO This isn't nailed down yet
+    //    setAutomaticRetryDelay() // @TODO This isn't nailed down yet
+    //    setAutomaticRetryCount() // @TODO This isn't nailed down yet
     //    setAutomaticAck() // @TODO This isn't nailed down yet
     setContinuousCarrierMode(false)
   }
@@ -155,5 +157,34 @@ class CrazyRadio(val usbDevice: UsbDevice) {
 
   def launchBootLoader() = {
     throw new RuntimeException("This feature is not yet implemented.")
+  }
+
+  protected def sendVendorRequest(requestType: Int, value: Int) = {
+      // DEMO stuff some dude on the internet was doing
+      //  https://groups.google.com/d/msg/usb4java/q1qeIrej4E8/GcORacd55CAJ
+//    val config = usbDevice.getActiveUsbConfiguration
+//    val interface = config.getUsbInterface(0.toByte)
+
+//    // Causes the USB error 3 exception
+//    interface.claim(new UsbInterfacePolicy() {
+//      override def forceClaim(usbInterface: UsbInterface): Boolean = true
+//    })
+
+//    // Get the inbound endpoint and it's pipe
+//    // Causes an NPE if the port is not claimed first.
+//    val inboundEndpoint = interface.getUsbEndpoint(1.toByte)
+//    val pipe = inboundEndpoint.getUsbPipe
+
+
+    // DEMO stuff from the usb4java quickstart page
+    val ioRequestPacket = usbDevice.createUsbControlIrp(
+      (UsbConst.REQUESTTYPE_DIRECTION_IN | UsbConst.REQUESTTYPE_TYPE_STANDARD | UsbConst.REQUESTTYPE_RECIPIENT_DEVICE).toByte,
+      UsbConst.REQUEST_GET_CONFIGURATION,
+      0,
+      0
+    )
+    ioRequestPacket.setData(Array(1.toByte))
+    usbDevice.syncSubmit(ioRequestPacket)
+    println(ioRequestPacket.getData)
   }
 }
