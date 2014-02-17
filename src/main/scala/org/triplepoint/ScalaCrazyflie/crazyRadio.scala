@@ -108,18 +108,22 @@ class CrazyRadio(val usbDevice: UsbDevice) {
   def setChannel(channel: Int) = {
     require(channel >= 0, "The radio channel must be greater than or equal to 0.")
     require(channel <= 125, "The radio channel must be less than or equal to 125.")
+    println(channel)
   }
 
   // @TODO this takes a 64-bit unsigned value, which the JVM cannot represent. Figure this out.
   def setAddress(address: Int) = {
+    println(address)
   }
 
   def setDataRate(dataRate: Int) = {
     // @todo should be an enum
+    println(dataRate.id)
   }
 
   def setPower(power: Int) = {
     // @todo should be an enum
+    println(power.id)
   }
 
   // @ TODO look at how these are configured
