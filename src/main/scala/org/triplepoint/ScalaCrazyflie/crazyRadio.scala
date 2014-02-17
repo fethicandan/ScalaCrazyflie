@@ -42,7 +42,7 @@ object CrazyRadio {
 
     val foundUsbDevice = findUsbDevice(rootHub, CrazyRadioVendorId, CrazyRadioProductId) match {
       case Some(x) => x
-      case None    => throw new RuntimeException("Couldn't find the device.")
+      case None    => throw new RuntimeException("Couldn't find the requested device.")
     }
 
     new CrazyRadio(foundUsbDevice)
