@@ -28,8 +28,8 @@ object CrazyRadio {
   val AckEnable: (Byte, Byte) = (0x40, 0x10)
   val SetContinuousCarrier: (Byte, Byte) = (0x40, 0x20)
   val StartScanChannels: (Byte, Byte) = (0x40, 0x21)
-  //val GetScanChannels: (Byte, Byte) = (0xC0, 0x21)
-  //val LaunchBootLoader: (Byte, Byte) = (0x40, 0xFF)
+  val GetScanChannels: (Byte, Byte) = (0xC0.toByte, 0x21)
+  val LaunchBootLoader: (Byte, Byte) = (0x40, 0xFF.toByte)
 
   /**
    * Enumerate the possible values for the radio data rate setting.
@@ -71,8 +71,7 @@ object CrazyRadio {
    */
   protected def findUsbDevice(device: UsbDevice, vendorId: Int, productId: Int): Option[UsbDevice] = device match {
     case x: UsbDevice
-      if x.getUsbDeviceDescriptor.idVendor  == vendorId &&
-         x.getUsbDeviceDescriptor.idProduct == productId
+      if (x.getUsbDeviceDescriptor.idVendor, x.getUsbDeviceDescriptor.idProduct) == (vendorId, productId)
       => Some(x)
 
     case x: UsbDevice if x.isUsbHub =>
@@ -104,7 +103,7 @@ class CrazyRadio(val usbDevice: UsbDevice) {
 
   def initializeRadio() = {
     setChannel(2)
-    setAddress(BigInt("E7E7E7E7E7", 16))
+    //setAddress(BigInt("E7E7E7E7E7", 16)) // @TODO I think the usb library is expecting an array of bytes, not a bigint
     setDataRate(DataRate.`2Mbps`)
     setPower(Power.`0dBm`)
     //setAutomaticRetryDelay() // @TODO This isn't nailed down yet
