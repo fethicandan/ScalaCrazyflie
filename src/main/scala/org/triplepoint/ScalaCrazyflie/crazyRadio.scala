@@ -57,28 +57,25 @@ object CrazyRadio {
    */
   def apply() = {
     val rootHub = UsbHostManager.getUsbServices.getRootUsbHub
-    val foundUsbDevice = findUsbDevice(rootHub, CrazyRadioVendorId, CrazyRadioProductId) match {
-      case Some(x) => x
-      case None    => throw new RuntimeException("Couldn't find the requested device.")
-    }
+    val foundUsbDevice = findUsbDevice(rootHub, CrazyRadioVendorId, CrazyRadioProductId)
+      .getOrElse {
+        throw new RuntimeException("Couldn't find the requested device.")
+      }
 
     new CrazyRadio(foundUsbDevice)
   }
 
   /**
-   * Given a USB hub device, try to find an object in the hierarchy that matches
+   * Given a USB hub device, try to find the first object in the hierarchy that matches
    * the given vendor and product IDs.
    */
   protected def findUsbDevice(device: UsbDevice, vendorId: Int, productId: Int): Option[UsbDevice] = device match {
-    case x: UsbDevice
-      if (x.getUsbDeviceDescriptor.idVendor, x.getUsbDeviceDescriptor.idProduct) == (vendorId, productId)
+    case x: UsbDevice if (x.getUsbDeviceDescriptor.idVendor, x.getUsbDeviceDescriptor.idProduct) == (vendorId, productId)
       => Some(x)
 
-    case x: UsbDevice if x.isUsbHub =>
-      val listAttachedDevices = x.asInstanceOf[UsbHub].getAttachedUsbDevices.asScala.toList.map(_.asInstanceOf[UsbDevice])
-      listAttachedDevices
-        .map(x => findUsbDevice(x, vendorId, productId))
-        .flatten
+    case x: UsbDevice if x.isUsbHub
+      => x.asInstanceOf[UsbHub].getAttachedUsbDevices.asScala
+        .flatMap(y => findUsbDevice(y.asInstanceOf[UsbDevice], vendorId, productId))
         .headOption
 
     case _ => None
