@@ -2,8 +2,8 @@ name := "ScalaCrazyflie"
 
 version := "1.0"
 
-scalaVersion := "2.10.3"
+scalaVersion := "2.10.4"
 
 resolvers += "Ailis Maven Releases" at "http://nexus.ailis.de/content/groups/public/"
 
-libraryDependencies += "de.ailis.usb4java" % "usb4java" % "1.0.0"
+libraryDependencies += "org.usb4java" % "usb4java-javax" % "1.2.0"

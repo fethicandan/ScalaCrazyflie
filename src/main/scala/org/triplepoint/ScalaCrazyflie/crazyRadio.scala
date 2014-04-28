@@ -1,8 +1,8 @@
 package org.triplepoint.ScalaCrazyflie
 
-import javax.usb._
-import de.ailis.usb4java.utils.DescriptorUtils
 import scala.collection.JavaConverters._
+import javax.usb._
+import org.usb4java.DescriptorUtils
 import org.triplepoint.ScalaCrazyflie.CrazyRadio.DataRate
 import org.triplepoint.ScalaCrazyflie.CrazyRadio.DataRate.DataRate
 import org.triplepoint.ScalaCrazyflie.CrazyRadio.Power
@@ -13,8 +13,8 @@ object CrazyRadio {
   /**
    * USB Device parameters
    */
-  val CrazyRadioVendorId = 0x1915
-  val CrazyRadioProductId = 0x7777
+  val CrazyRadioVendorId: Short = 0x10c4//0x1915
+  val CrazyRadioProductId: Short = 0x84c4
 
   /**
    * Radio Configuration Messages (request type, request)
@@ -92,91 +92,134 @@ object CrazyRadio {
  * http://javax-usb.sourceforge.net/jsr80.pdf
  */
 class CrazyRadio(val usbDevice: UsbDevice) {
-
   val firmwareVersion = DescriptorUtils.decodeBCD(usbDevice.getUsbDeviceDescriptor.bcdDevice).toFloat
-  assert(firmwareVersion >= 0.4, "Firmware version must be 0.4 or greater.")
+  require(firmwareVersion >= 0.4, "Firmware version must be 0.4 or greater.")
 
-  initializeRadio()
+  //var endpointIn: Option[UsbEndpoint] = getEndpointIn
+  //var endpointOut: Option[UsbEndpoint] = getEndpointOut
 
-  def initializeRadio() = {
-    setChannel(2)
-    //setAddress(BigInt("E7E7E7E7E7", 16)) // @TODO I think the usb library is expecting an array of bytes, not a bigint
-    setDataRate(DataRate.`2Mbps`)
-    setPower(Power.`0dBm`)
-    //setAutomaticRetryDelay() // @TODO This isn't nailed down yet
-    //setAutomaticRetryCount() // @TODO This isn't nailed down yet
-    //setAutomaticAck()        // @TODO This isn't nailed down yet
-    setContinuousCarrierMode(false)
-  }
+//  initDevice()
 
+  val irp = usbDevice.createUsbControlIrp(
+    (UsbConst.REQUESTTYPE_DIRECTION_IN
+      | UsbConst.REQUESTTYPE_TYPE_STANDARD
+      | UsbConst.REQUESTTYPE_RECIPIENT_DEVICE).toByte,
+    UsbConst.REQUEST_GET_CONFIGURATION,
+    0.toShort,
+    0.toShort
+  )
+
+  irp.setData(List(1.toByte).toArray)
+  usbDevice.syncSubmit(irp)
+  println(irp.getData().head)
+
+
+
+
+  //setChannel(2)
+
+//  protected def getEndpointIn = {
+//    val deviceConfiguration = usbDevice.getActiveUsbConfiguration
+//    val deviceConfigurationDescriptor = deviceConfiguration.getUsbConfigurationDescriptor
+//
+//    require(deviceConfigurationDescriptor.bNumInterfaces == 1, "Could not find device interface")
+//
+//    val deviceInterface = deviceConfiguration.getUsbInterface(0.toByte)
+//    val deviceInterfaceDescription = deviceInterface.getUsbInterfaceDescriptor
+//
+//    require(deviceInterfaceDescription.bNumEndpoints == 2, "Could not find device interface endpoints")
+//
+//    deviceInterface.getUsbEndpoints.asScala
+//      .map(_.asInstanceOf[UsbEndpoint])
+//      .find(_.getDirection == UsbConst.ENDPOINT_DIRECTION_IN)
+//  }
+//
+//  protected def getEndpointOut = {
+//    val deviceConfiguration = usbDevice.getActiveUsbConfiguration
+//    val deviceConfigurationDescriptor = deviceConfiguration.getUsbConfigurationDescriptor
+//
+//    require(deviceConfigurationDescriptor.bNumInterfaces == 1, "Could not find device interface")
+//
+//    val deviceInterface = deviceConfiguration.getUsbInterface(0.toByte)
+//    val deviceInterfaceDescription = deviceInterface.getUsbInterfaceDescriptor
+//
+//    require(deviceInterfaceDescription.bNumEndpoints == 2, "Could not find device interface endpoints")
+//
+//    deviceInterface.getUsbEndpoints.asScala
+//      .map(_.asInstanceOf[UsbEndpoint])
+//      .find(_.getDirection == UsbConst.ENDPOINT_DIRECTION_OUT)
+//  }
+
+//  def initializeRadio() = {
+//    //setChannel(2)
+//    //setAddress(BigInt("E7E7E7E7E7", 16)) // @TODO I think the usb library is expecting an array of bytes, not a bigint
+//    //setDataRate(DataRate.`2Mbps`)
+//    //setPower(Power.`0dBm`)
+//    //setAutomaticRetryDelay() // @TODO This isn't nailed down yet
+//    //setAutomaticRetryCount() // @TODO This isn't nailed down yet
+//    //setAutomaticAck()        // @TODO This isn't nailed down yet
+//    //setContinuousCarrierMode(false)
+//  }
+//
   def setChannel(channel: Short) = {
     require(channel >= 0, "The radio channel must be greater than or equal to 0.")
     require(channel <= 125, "The radio channel must be less than or equal to 125.")
     sendControlRequest(CrazyRadio.SetRadioChannel, channel, 0)
   }
+//
+//  def setAddress(address: BigInt) = {
+//    require(address >= 0, "The radio address must be greater than or equal to 0F.")
+//    require(address <= BigInt("FFFFFFFFFF", 16), "The radio address must be less than or equal to 0xFFFFFFFFFF.")
+//    //sendControlRequest(CrazyRadio.SetRadioAddress, 0, 0, address) // @TODO address appears to be an array of bytes?
+//  }
+//
+//  def setDataRate(dataRate: DataRate) = {
+//    sendControlRequest(CrazyRadio.SetDataRate, dataRate.id.toShort, 0)
+//  }
+//
+//  def setPower(power: Power) = {
+//    sendControlRequest(CrazyRadio.SetRadioPower, power.id.toShort, 0)
+//  }
+//
+//  // @ TODO look at how these are configured
+//  def setAutomaticRetryDelay(microseconds: Int) = {
+//    // @TODO Convert the microseconds to a hexvalue
+//    // Also, note that this can be configured in two different ways, by wait time or by payload length.  Figure that out.
+//    // sendControlRequest(CrazyRadio.SetRadioARD, microseconds, 0)
+//  }
+//
+//  def setAutomaticRetryCount(count: Short) = {
+//    require(count >= 0, "The automatic retry count must be greater than or equal to 0.")
+//    require(count <= 15, "The automatic retry count must be less than or equal to 15.")
+//    sendControlRequest(CrazyRadio.SetRadioARC, count, 0)
+//  }
+//
+//  def setAutomaticAck(enabled: Boolean) = {
+//    val value = (if (enabled) 1 else 0).toShort
+//    sendControlRequest(CrazyRadio.AckEnable, value, 0)
+//  }
+//
+//  def setContinuousCarrierMode(active: Boolean) = {
+//    val value = (if (active) 1 else 0).toShort
+//    sendControlRequest(CrazyRadio.SetContinuousCarrier, value, 0)
+//  }
+//
+//  def scanChannels() = {
+//    throw new RuntimeException("This feature is not yet implemented.")
+//  }
+//
+//  def launchBootLoader() = {
+//    throw new RuntimeException("This feature is not yet implemented.")
+//    //sendControlRequest(CrazyRadio.LaunchBootLoader, 0, 0)
+//  }
 
-  def setAddress(address: BigInt) = {
-    require(address >= 0, "The radio address must be greater than or equal to 0F.")
-    require(address <= BigInt("FFFFFFFFFF", 16), "The radio address must be less than or equal to 0xFFFFFFFFFF.")
-    //sendControlRequest(CrazyRadio.SetRadioAddress, 0, 0, address) // @TODO address appears to be an array of bytes?
-  }
-
-  def setDataRate(dataRate: DataRate) = {
-    sendControlRequest(CrazyRadio.SetDataRate, dataRate.id.toShort, 0)
-  }
-
-  def setPower(power: Power) = {
-    sendControlRequest(CrazyRadio.SetRadioPower, power.id.toShort, 0)
-  }
-
-  // @ TODO look at how these are configured
-  def setAutomaticRetryDelay(microseconds: Int) = {
-    // @TODO Convert the microseconds to a hexvalue
-    // Also, note that this can be configured in two different ways, by wait time or by payload length.  Figure that out.
-    // sendControlRequest(CrazyRadio.SetRadioARD, microseconds, 0)
-  }
-
-  def setAutomaticRetryCount(count: Short) = {
-    require(count >= 0, "The automatic retry count must be greater than or equal to 0.")
-    require(count <= 15, "The automatic retry count must be less than or equal to 15.")
-    sendControlRequest(CrazyRadio.SetRadioARC, count, 0)
-  }
-
-  def setAutomaticAck(enabled: Boolean) = {
-    val value = enabled match {
-      case true  => 1.toShort
-      case false => 0.toShort
-    }
-    sendControlRequest(CrazyRadio.AckEnable, value, 0)
-  }
-
-  def setContinuousCarrierMode(active: Boolean) = {
-    val value = active match {
-      case true  => 1.toShort
-      case false => 0.toShort
-    }
-    sendControlRequest(CrazyRadio.SetContinuousCarrier, value, 0)
-  }
-
-  def scanChannels() = {
-    throw new RuntimeException("This feature is not yet implemented.")
-  }
-
-  def launchBootLoader() = {
-    throw new RuntimeException("This feature is not yet implemented.")
-    //sendControlRequest(CrazyRadio.LaunchBootLoader, 0, 0)
-  }
-
-  protected def sendControlRequest(message: (Byte, Byte), value: Short, index: Short, data: Array[Byte] = Array()) = {
+  protected def sendControlRequest(message: (Byte, Byte), value: Short, index: Short, data: Seq[Byte] = Nil) = {
     val controlIoRequestPacket = usbDevice.createUsbControlIrp(message._1, message._2, value, index)
 
-    data match {
-      case Array() => ()
-      case _       => controlIoRequestPacket.setData(data)
+    if (! data.isEmpty) {
+      controlIoRequestPacket.setData(data.toArray)
     }
 
     usbDevice.syncSubmit(controlIoRequestPacket)
-
-    println(controlIoRequestPacket.getActualLength)
- }
+  }
 }
